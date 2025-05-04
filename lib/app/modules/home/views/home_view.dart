@@ -23,7 +23,7 @@ class HomeView extends GetView<HomeController> {
           ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children:  [
+            children: [
               Obx(
                 () => Text(
                   controller.userName.value,
@@ -58,9 +58,14 @@ class HomeView extends GetView<HomeController> {
                   width: MediaQuery.of(context).size.width,
                   fit: BoxFit.fill,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 TextField(
                   decoration: InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
+
                     hintText: 'Search',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
@@ -71,23 +76,9 @@ class HomeView extends GetView<HomeController> {
                     fillColor: Colors.grey[200],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _FilterChip(
-                      label: 'Date',
-                      value: '10/17/2023',
-                      icon: Icons.calendar_today,
-                    ),
-                    const SizedBox(width: 8),
-                    _FilterChip(label: 'District', value: 'Bagherhat'),
-                    const SizedBox(width: 8),
-                    _FilterChip(label: 'Upazila', value: 'Select'),
-                    const SizedBox(width: 8),
-                    _FilterChip(label: 'Mokam', value: 'Select'),
-                  ],
-                ),
-                const SizedBox(height: 12),
+          
+                _FilterSection(controller),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -194,35 +185,236 @@ DataRow _productRow(
   );
 }
 
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData? icon;
-  const _FilterChip({required this.label, required this.value, this.icon});
+class _FilterSection extends StatelessWidget {
+  final HomeController controller;
+  const _FilterSection(this.controller, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(24),
       ),
-      child: Row(
+      child: Column(
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 14, color: Colors.grey[700]),
-            const SizedBox(width: 4),
-          ],
+          // First row: Date and District
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: _FilterField(
+                  label: 'Date',
+                  child: Obx(
+                    () => InkWell(
+                      onTap: () => controller.pickDate(context),
+                      borderRadius: BorderRadius.circular(10),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              "${controller.selectedDate.value.month}/${controller.selectedDate.value.day}/${controller.selectedDate.value.year}",
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const Spacer(),
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _FilterField(
+                  label: 'District',
+                  child: Obx(
+                    () => DropdownButtonFormField<String>(
+                      value:
+                          controller.selectedDistrictId.value.isNotEmpty
+                              ? controller.selectedDistrictId.value
+                              : null,
+                      hint: const Text('Select'),
+                      items:
+                          controller.districtList.map<DropdownMenuItem<String>>(
+                            (district) {
+                              return DropdownMenuItem<String>(
+                                value: district['DistrictCode'],
+                                child: Text(
+                                  district['DistrictName'],
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              );
+                            },
+                          ).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          controller.selectedDistrictId.value = newValue;
+                          controller.fetchUpazilaMokam(newValue);
+                        }
+                      },
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Second row: Upazila and Mokam
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: _FilterField(
+                  label: 'Upazila',
+                  child: Obx(
+                    () => DropdownButtonFormField<String>(
+                      value:
+                          controller.selectedUpazillasId.value.isNotEmpty
+                              ? controller.selectedUpazillasId.value
+                              : null,
+                      hint: const Text('Select'),
+                      items:
+                          controller.upazillasList
+                              .map<DropdownMenuItem<String>>((district) {
+                                return DropdownMenuItem<String>(
+                                  value: district['UpazillaCode'],
+                                  child: Text(
+                                    district['UpazillaName'],
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                );
+                              })
+                              .toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          controller.selectedUpazillasId.value = newValue;
+                        }
+                      },
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _FilterField(
+                  label: 'Mokam',
+                  child: Obx(
+                    () => DropdownButtonFormField<String>(
+                      value:
+                          controller.selectedMokamsId.value.isNotEmpty
+                              ? controller.selectedMokamsId.value
+                              : null,
+                      hint: const Text('Select'),
+                      items:
+                          controller.mokamsList
+                              .map<DropdownMenuItem<String>>((district) {
+                                return DropdownMenuItem<String>(
+                                  value: district['MokamId'],
+                                  child: Text(
+                                    district['MokamName'],
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                );
+                              })
+                              .toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          controller.selectedMokamsId.value = newValue;
+                        }
+                      },
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterField extends StatelessWidget {
+  final String label;
+  final Widget child;
+  const _FilterField({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 130,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: Colors.black54),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+              fontSize: 15,
+            ),
           ),
-          const SizedBox(width: 4),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-          ),
+          const SizedBox(height: 4),
+          child,
         ],
       ),
     );

@@ -8,7 +8,6 @@ plugins {
 android {
     namespace = "com.agribusiness.daily_food_price"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

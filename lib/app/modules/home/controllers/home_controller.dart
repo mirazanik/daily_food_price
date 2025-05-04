@@ -14,9 +14,13 @@ class HomeController extends GetxController {
 
   // District, Upazila, Mokam
   var districtList = [].obs;
-  var upazilaMokamList = [].obs;
+  var upazillasList = [].obs;
+  var mokamsList = [].obs;
   var selectedDistrictId = ''.obs;
-  var selectedUpazilaMokamId = ''.obs;
+  var selectedUpazillasId = ''.obs;
+  var selectedMokamsId = ''.obs;
+
+
 
   @override
   void onInit() {
@@ -61,7 +65,7 @@ class HomeController extends GetxController {
       districtList.value = districts;
       if (districts.isNotEmpty) {
         selectedDistrictId.value = districts[0]['DistrictCode'];
-        //fetchUpazilaMokam(districts[0]['DistrictCode']);
+        fetchUpazilaMokam(districts[0]['DistrictCode']);
       }
     }
   }
@@ -78,10 +82,11 @@ class HomeController extends GetxController {
     );
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      upazilaMokamList.value = data;
-      if (data.isNotEmpty) {
-        selectedUpazilaMokamId.value = data[0]['id'];
-      }
+      final upazila = data['upazillas'] ?? [];
+      upazillasList.value = upazila;
+      final mokams = data['mokams'] ?? [];
+      mokamsList.value = mokams;
+      
     }
   }
 }

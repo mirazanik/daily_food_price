@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../../../routes/app_pages.dart';
 
@@ -17,20 +19,64 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
 
+  String? phone;
+  String? otp;
+
+  @override
+  void initState() {
+    super.initState();
+    final args = Get.arguments as Map<String, dynamic>?;
+    phone = args?['phone'];
+    otp = args?['otp'];
+  }
+
+  Future<void> resetPassword() async {
+    final newPassword = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    if (newPassword.isEmpty || confirmPassword.isEmpty) {
+      Get.snackbar('Error', 'Please fill in all fields');
+      return;
+    }
+    if (newPassword != confirmPassword) {
+      Get.snackbar('Error', 'Passwords do not match');
+      return;
+    }
+    if (phone == null || otp == null) {
+      Get.snackbar('Error', 'Missing phone or OTP');
+      return;
+    }
+
+    final url = Uri.parse(
+      'https://wa.acibd.com/price-survey/api/customer-reset-password',
+    );
+    final response = await http.post(
+      url,
+      body: {
+        'customerMobile': phone,
+        'otpCode': otp,
+        'new_password': newPassword,
+      },
+    );
+
+    final data = json.decode(response.body);
+    if (data['status'] == true) {
+      Get.offAllNamed(Routes.SIGN_IN);
+    } else {
+      Get.snackbar('Error', data['message'] ?? 'Failed to reset password');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text('')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Get.back(),
-              ),
-              const SizedBox(height: 8),
               const Text(
                 'Create New Password',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -45,7 +91,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
                 controller: passwordController,
                 obscureText: obscurePassword,
                 decoration: InputDecoration(
-                  hintText: 'New Passwords',
+                  hintText: 'New Password',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -97,10 +143,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  onPressed: () {
-                    // TODO: Add reset password logic
-                    Get.offAllNamed(Routes.SIGN_IN);
-                  },
+                  onPressed: resetPassword,
                   child: const Text(
                     'RESET PASSWORD',
                     style: TextStyle(

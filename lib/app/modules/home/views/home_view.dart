@@ -76,7 +76,7 @@ class HomeView extends GetView<HomeController> {
                     fillColor: Colors.grey[200],
                   ),
                 ),
-          
+
                 _FilterSection(controller),
                 const SizedBox(height: 8),
                 Row(
@@ -93,69 +93,76 @@ class HomeView extends GetView<HomeController> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    headingRowColor: MaterialStateProperty.all(
-                      const Color(0xFF26A69A),
+                Obx(() {
+                  final priceList = controller.priceReportList;
+                  if (priceList.isEmpty) {
+                    return const Center(child: Text('No data found'));
+                  }
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingRowColor: MaterialStateProperty.all(
+                        const Color(0xFF26A69A),
+                      ),
+                      headingTextStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                      columns: [
+                        DataColumn(label: Text('Product Name')),
+                        DataColumn(label: Text('Kawran Bazar')),
+                        DataColumn(label: Text('DAM')),
+                        DataColumn(label: Text('Shwapno')),
+                        DataColumn(label: Text('CNB Bazar, Bagerhat (W.P)')),
+                        DataColumn(label: Text('MinMax')),
+                      ],
+                      rows:
+                          priceList.map<DataRow>((item) {
+                            return DataRow(
+                              cells: [
+                                DataCell(
+                                  Text(
+                                    item['ProductName'] ?? '',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    item['Kawran Bazar'] ?? '',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    item['DAM'] ?? '',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    item['Shwapno'] ?? '',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    item['CNB Bazar, Bagerhat  (W.P)'] ?? '',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    item['MinMax'] ?? '',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
                     ),
-                    headingTextStyle: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                    columns: const [
-                      DataColumn(label: Text('Product Name')),
-                      DataColumn(label: Text('ক্রয়মূল্য\n(Buy Price)')),
-                      DataColumn(label: Text('বিক্রয়মূল্য\n(Sell Price)')),
-                      DataColumn(label: Text('খুচরা\n(Retail)')),
-                      DataColumn(label: Text('আড়ৎ- মোকাম\n(Wholesale)')),
-                      DataColumn(label: Text('পূর্বের মূল্য\n(Prev. Price)')),
-                    ],
-                    rows: [
-                      _productRow(
-                        'আলু সাদা/White Potato',
-                        '60',
-                        '50',
-                        '50',
-                        '50-65',
-                        '50',
-                      ),
-                      _productRow(
-                        'পেঁপে/Green Papaya',
-                        '40',
-                        '30',
-                        '30',
-                        '30-40',
-                        '30',
-                      ),
-                      _productRow(
-                        'কুমড়া/ Bottle Gourd',
-                        '60',
-                        '50',
-                        '50',
-                        '50-65',
-                        '50',
-                      ),
-                      _productRow(
-                        'ছাগল মাংস/Goat meat',
-                        '1100',
-                        '1050',
-                        '1050',
-                        '950-1150',
-                        '970',
-                      ),
-                      _productRow(
-                        'মুরগি (দেশি)/Chicken (Deshi)',
-                        '1100',
-                        '1050',
-                        '1050',
-                        '950-1150',
-                        '970',
-                      ),
-                    ],
-                  ),
-                ),
+                  );
+                }),
               ],
             ),
           ),
@@ -227,7 +234,7 @@ class _FilterSection extends StatelessWidget {
                         child: Row(
                           children: [
                             Text(
-                              "${controller.selectedDate.value.month}/${controller.selectedDate.value.day}/${controller.selectedDate.value.year}",
+                              controller.formattedSelectedDate,
                               style: const TextStyle(
                                 fontSize: 15,
                                 color: Colors.black87,
@@ -353,20 +360,21 @@ class _FilterSection extends StatelessWidget {
                               : null,
                       hint: const Text('Select'),
                       items:
-                          controller.mokamsList
-                              .map<DropdownMenuItem<String>>((district) {
-                                return DropdownMenuItem<String>(
-                                  value: district['MokamId'],
-                                  child: Text(
-                                    district['MokamName'],
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                );
-                              })
-                              .toList(),
+                          controller.mokamsList.map<DropdownMenuItem<String>>((
+                            district,
+                          ) {
+                            return DropdownMenuItem<String>(
+                              value: district['MokamId'],
+                              child: Text(
+                                district['MokamName'],
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            );
+                          }).toList(),
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           controller.selectedMokamsId.value = newValue;
+                          controller.fetchPriceReport();
                         }
                       },
                       decoration: InputDecoration(

@@ -11,6 +11,16 @@ class VerifyCodeView extends StatefulWidget {
 
 class _VerifyCodeViewState extends State<VerifyCodeView> {
   List<String> code = [];
+  String? otp;
+  String? phone;
+
+  @override
+  void initState() {
+    super.initState();
+    final args = Get.arguments as Map<String, dynamic>?;
+    otp = args?['otp'];
+    phone = args?['phone'];
+  }
 
   void _onKeyTap(String value) {
     if (code.length < 6) {
@@ -25,6 +35,18 @@ class _VerifyCodeViewState extends State<VerifyCodeView> {
       setState(() {
         code.removeLast();
       });
+    }
+  }
+
+  void _verifyOtp() {
+    final enteredCode = code.join();
+    if (enteredCode == otp) {
+      Get.toNamed(
+        Routes.RESET_PASSWORD,
+        arguments: {'phone': phone, 'otp': otp},
+      );
+    } else {
+      Get.snackbar('Invalid OTP', 'The code you entered is incorrect.');
     }
   }
 
@@ -87,27 +109,27 @@ class _VerifyCodeViewState extends State<VerifyCodeView> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Center(
-                  child: Column(
-                    children: [
-                      const Text(
-                        "I didn't receive the code!",
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Text(
-                          'Resend code',
-                          style: TextStyle(
-                            color: Color(0xFF26A69A),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // const SizedBox(height: 16),
+                // Center(
+                //   child: Column(
+                //     children: [
+                //       const Text(
+                //         "I didn't receive the code!",
+                //         style: TextStyle(color: Colors.black54),
+                //       ),
+                //       GestureDetector(
+                //         onTap: () {},
+                //         child: const Text(
+                //           'Resend code',
+                //           style: TextStyle(
+                //             color: Color(0xFF26A69A),
+                //             fontWeight: FontWeight.bold,
+                //           ),
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -119,10 +141,7 @@ class _VerifyCodeViewState extends State<VerifyCodeView> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    onPressed:
-                        code.length == 6
-                            ? () => Get.toNamed(Routes.RESET_PASSWORD)
-                            : null,
+                    onPressed: code.length == 6 ? _verifyOtp : null,
                     child: const Text(
                       'VERIFY',
                       style: TextStyle(

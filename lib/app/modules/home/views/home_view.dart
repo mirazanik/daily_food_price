@@ -1,8 +1,7 @@
 import 'package:daily_food_price/constants/custom_image_view.dart';
-import 'package:daily_food_price/constants/size_utils.dart';
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controllers/home_controller.dart';
 
@@ -17,10 +16,10 @@ class HomeView extends GetView<HomeController> {
         appBar: AppBar(
           backgroundColor: const Color(0xFF26A69A),
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () {},
-          ),
+          // leading: IconButton(
+          //   icon: const Icon(Icons.menu, color: Colors.white),
+          //   onPressed: () {},
+          // ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -40,8 +39,10 @@ class HomeView extends GetView<HomeController> {
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.notifications_active, color: Colors.white),
-              onPressed: () {},
+              icon: const Icon(Icons.logout, color: Colors.white),
+              onPressed: () {
+                controller.logout();
+              },
             ),
           ],
         ),
@@ -78,90 +79,85 @@ class HomeView extends GetView<HomeController> {
                 ),
 
                 _FilterSection(controller),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'All Product',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    TextButton(onPressed: () {}, child: const Text('See All')),
-                  ],
-                ),
+              
+              
                 const SizedBox(height: 8),
                 Obx(() {
-                  final priceList = controller.priceReportList;
-                  if (priceList.isEmpty) {
-                    return const Center(child: Text('No data found'));
-                  }
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: MaterialStateProperty.all(
-                        const Color(0xFF26A69A),
-                      ),
-                      headingTextStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                      columns: [
-                        DataColumn(label: Text('Product Name')),
-                        DataColumn(label: Text('Kawran Bazar')),
-                        DataColumn(label: Text('DAM')),
-                        DataColumn(label: Text('Shwapno')),
-                        DataColumn(label: Text('CNB Bazar, Bagerhat (W.P)')),
-                        DataColumn(label: Text('MinMax')),
-                      ],
-                      rows:
-                          priceList.map<DataRow>((item) {
-                            return DataRow(
-                              cells: [
-                                DataCell(
-                                  Text(
-                                    item['ProductName'] ?? '',
-                                    style: TextStyle(fontSize: 12),
+                  if (controller.selectedUpazillasId.value.isNotEmpty ||
+                      controller.selectedMokamsId.value.isNotEmpty) {
+                    final priceList = controller.priceReportList;
+                    if (priceList.isEmpty) {
+                      return const Center(child: Text('No data found'));
+                    }
+                    return SizedBox(
+                      height: 350,
+                      child: Scrollbar(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: 900,
+                            child: Column(
+                              children: [
+                                Container(
+                                  color: const Color(0xFF26A69A),
+                                  child: Row(
+                                    children: [
+                                      _tableHeaderCell('Product Name', flex: 3),
+                                      _tableHeaderCell('Kawran Bazar'),
+                                      _tableHeaderCell('DAM'),
+                                      _tableHeaderCell('Shwapno'),
+                                      _tableHeaderCell(
+                                        'CNB Bazar, Bagerhat (W.P)',
+                                      ),
+                                      _tableHeaderCell('MinMax'),
+                                    ],
                                   ),
                                 ),
-                                DataCell(
-                                  Text(
-                                    item['Kawran Bazar'] ?? '',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                                DataCell(
-                                  Text(
-                                    item['DAM'] ?? '',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                                DataCell(
-                                  Text(
-                                    item['Shwapno'] ?? '',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                                DataCell(
-                                  Text(
-                                    item['CNB Bazar, Bagerhat  (W.P)'] ?? '',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                                DataCell(
-                                  Text(
-                                    item['MinMax'] ?? '',
-                                    style: TextStyle(fontSize: 12),
+                                Expanded(
+                                  child: ListView.builder(
+                                    itemCount: priceList.length,
+                                    itemBuilder: (context, index) {
+                                      final item = priceList[index];
+                                      return Container(
+                                        color:
+                                            index % 2 == 0
+                                                ? Colors.white
+                                                : Colors.grey[100],
+                                        child: Row(
+                                          children: [
+                                            _tableBodyCell(
+                                              item['ProductName'] ?? '',
+                                              flex: 3,
+                                            ),
+                                            _tableBodyCell(
+                                              item['Kawran Bazar'] ?? '',
+                                            ),
+                                            _tableBodyCell(item['DAM'] ?? ''),
+                                            _tableBodyCell(
+                                              item['Shwapno'] ?? '',
+                                            ),
+                                            _tableBodyCell(
+                                              item['CNB Bazar, Bagerhat  (W.P)'] ??
+                                                  '',
+                                            ),
+                                            _tableBodyCell(
+                                              item['MinMax'] ?? '',
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               ],
-                            );
-                          }).toList(),
-                    ),
-                  );
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
                 }),
               ],
             ),
@@ -302,99 +298,107 @@ class _FilterSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           // Second row: Upazila and Mokam
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: _FilterField(
-                  label: 'Upazila',
-                  child: Obx(
-                    () => DropdownButtonFormField<String>(
-                      value:
-                          controller.selectedUpazillasId.value.isNotEmpty
-                              ? controller.selectedUpazillasId.value
-                              : null,
-                      hint: const Text('Select'),
-                      items:
-                          controller.upazillasList
-                              .map<DropdownMenuItem<String>>((district) {
-                                return DropdownMenuItem<String>(
-                                  value: district['UpazillaCode'],
-                                  child: Text(
-                                    district['UpazillaName'],
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                );
-                              })
-                              .toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          controller.selectedUpazillasId.value = newValue;
-                        }
-                      },
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _FilterField(
-                  label: 'Mokam',
-                  child: Obx(
-                    () => DropdownButtonFormField<String>(
-                      value:
-                          controller.selectedMokamsId.value.isNotEmpty
-                              ? controller.selectedMokamsId.value
-                              : null,
-                      hint: const Text('Select'),
-                      items:
-                          controller.mokamsList.map<DropdownMenuItem<String>>((
-                            district,
-                          ) {
-                            return DropdownMenuItem<String>(
-                              value: district['MokamId'],
-                              child: Text(
-                                district['MokamName'],
-                                style: const TextStyle(fontSize: 12),
+          Obx(() {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                controller.upazillasList.isEmpty
+                    ? Container()
+                    : Expanded(
+                      child: _FilterField(
+                        label: 'Upazila',
+                        child: Obx(
+                          () => DropdownButtonFormField<String>(
+                            value:
+                                controller.selectedUpazillasId.value.isNotEmpty
+                                    ? controller.selectedUpazillasId.value
+                                    : null,
+                            hint: const Text('Select'),
+                            items:
+                                controller.upazillasList
+                                    .map<DropdownMenuItem<String>>((district) {
+                                      print(controller.upazillasList.length);
+                                      return DropdownMenuItem<String>(
+                                        value: district['UpazillaCode'],
+                                        child: Text(
+                                          district['UpazillaName'],
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      );
+                                    })
+                                    .toList(),
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                controller.selectedUpazillasId.value = newValue;
+                                controller.fetchPriceReport();
+                              }
+                            },
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
                               ),
-                            );
-                          }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          controller.selectedMokamsId.value = newValue;
-                          controller.fetchPriceReport();
-                        }
-                      },
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                          ),
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 16),
+                controller.mokamsList.isEmpty
+                    ? Container()
+                    : Expanded(
+                      child: _FilterField(
+                        label: 'Mokam',
+                        child: Obx(
+                          () => DropdownButtonFormField<String>(
+                            value:
+                                controller.selectedMokamsId.value.isNotEmpty
+                                    ? controller.selectedMokamsId.value
+                                    : null,
+                            hint: const Text('Select'),
+                            items:
+                                controller.mokamsList
+                                    .map<DropdownMenuItem<String>>((district) {
+                                      return DropdownMenuItem<String>(
+                                        value: district['MokamId'],
+                                        child: Text(
+                                          district['MokamName'],
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      );
+                                    })
+                                    .toList(),
+                            onChanged: (String? newValue) {
+                              if (newValue != null) {
+                                controller.selectedMokamsId.value = newValue;
+                                controller.fetchPriceReport();
+                              }
+                            },
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -427,4 +431,45 @@ class _FilterField extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> logout() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.clear(); // or remove only 'user' and 'token' if needed
+  Get.offAllNamed('/sign-in'); // or use Routes.SIGN_IN if imported
+}
+
+Widget _tableHeaderCell(String text, {int flex = 1}) {
+  return Expanded(
+    flex: flex,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    ),
+  );
+}
+
+Widget _tableBodyCell(String text, {int flex = 1}) {
+  return Expanded(
+    flex: flex,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 11, color: Colors.black87),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+      ),
+    ),
+  );
 }

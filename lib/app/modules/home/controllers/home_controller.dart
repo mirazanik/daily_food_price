@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeController extends GetxController {
   var userName = ''.obs;
@@ -71,10 +71,10 @@ class HomeController extends GetxController {
       final data = json.decode(utf8.decode(response.bodyBytes));
       final districts = data['districts'] ?? [];
       districtList.value = districts;
-      if (districts.isNotEmpty) {
-        selectedDistrictId.value = districts[0]['DistrictCode'];
-        fetchUpazilaMokam(districts[0]['DistrictCode']);
-      }
+      // if (districts.isNotEmpty) {
+      //   selectedDistrictId.value = districts[0]['DistrictCode'];
+      //   fetchUpazilaMokam(districts[0]['DistrictCode']);
+      // }
     }
   }
 
@@ -89,12 +89,23 @@ class HomeController extends GetxController {
       body: {'district_id': districtId},
     );
     if (response.statusCode == 200) {
+      print(response.statusCode);
+      print("Daab er pani");
+      print(response.body);
       final data = json.decode(utf8.decode(response.bodyBytes));
       final upazila = data['upazillas'] ?? [];
       upazillasList.value = upazila;
       final mokams = data['mokams'] ?? [];
       mokamsList.value = mokams;
+      selectedUpazillasId.value = '';
+      selectedMokamsId.value = '';
     }
+  }
+
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // or remove only 'user' and 'token' if needed
+    Get.offAllNamed('/sign-in'); // or use Routes.SIGN_IN if imported
   }
 
   // Main fetch function with corrected encoding handling

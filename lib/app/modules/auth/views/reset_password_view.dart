@@ -21,6 +21,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
 
   String? phone;
   String? otp;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -47,23 +48,29 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
       return;
     }
 
-    final url = Uri.parse(
-      'https://wa.acibd.com/price-survey/api/customer-reset-password',
-    );
-    final response = await http.post(
-      url,
-      body: {
-        'customerMobile': phone,
-        'otpCode': otp,
-        'new_password': newPassword,
-      },
-    );
+    setState(() => isLoading = true);
 
-    final data = json.decode(response.body);
-    if (data['status'] == true) {
-      Get.offAllNamed(Routes.SIGN_IN);
-    } else {
-      Get.snackbar('Error', data['message'] ?? 'Failed to reset password');
+    try {
+      final url = Uri.parse(
+        'https://wa.acibd.com/price-survey/api/customer-reset-password',
+      );
+      final response = await http.post(
+        url,
+        body: {
+          'customerMobile': phone,
+          'otpCode': otp,
+          'new_password': newPassword,
+        },
+      );
+
+      final data = json.decode(response.body);
+      if (data['status'] == true) {
+        Get.offAllNamed(Routes.SIGN_IN);
+      } else {
+        Get.snackbar('Error', data['message'] ?? 'Failed to reset password');
+      }
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -143,15 +150,27 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  onPressed: resetPassword,
-                  child: const Text(
-                    'RESET PASSWORD',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  onPressed: isLoading ? null : resetPassword,
+                  child:
+                      isLoading
+                          ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : const Text(
+                            'RESET PASSWORD',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                 ),
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../routes/app_pages.dart';
 import '../controllers/auth_controller.dart';
@@ -18,9 +19,23 @@ class _SignInViewState extends State<SignInView> {
   final AuthController authController = Get.put(AuthController());
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  void _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedPhone = prefs.getString('saved_phone') ?? '';
+    final savedPassword = prefs.getString('saved_password') ?? '';
+    setState(() {
+      phoneController.text = savedPhone;
+      passwordController.text = savedPassword;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    phoneController.text = '01521495184';
-    passwordController.text = '1234567';
     return Scaffold(
       body: Stack(
         children: [

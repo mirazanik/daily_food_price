@@ -13,23 +13,33 @@ class ForgotPasswordView extends StatefulWidget {
 
 class _ForgotPasswordViewState extends State<ForgotPasswordView> {
   final TextEditingController phoneController = TextEditingController();
+  bool isLoading = false;
 
   Future<void> sendOtp() async {
     final phone = phoneController.text.trim();
     if (phone.isEmpty) return;
 
-    final url = Uri.parse(
-      'https://wa.acibd.com/price-survey/api/customer-send-otp',
-    );
-    final response = await http.post(url, body: {'customerMobile': phone});
+    setState(() => isLoading = true);
 
-    final data = json.decode(response.body);
-    if (data['status'] == true) {
-      final otp = data['otp_code'].toString();
-      // Pass phone and otp to next page
-      Get.toNamed(Routes.VERIFY_CODE, arguments: {'phone': phone, 'otp': otp});
-    } else {
-      Get.snackbar('Error', data['message'] ?? 'Failed to send OTP');
+    try {
+      final url = Uri.parse(
+        'https://wa.acibd.com/price-survey/api/customer-send-otp',
+      );
+      final response = await http.post(url, body: {'customerMobile': phone});
+
+      final data = json.decode(response.body);
+      if (data['status'] == true) {
+        final otp = data['otp_code'].toString();
+        // Pass phone and otp to next page
+        Get.toNamed(
+          Routes.VERIFY_CODE,
+          arguments: {'phone': phone, 'otp': otp},
+        );
+      } else {
+        Get.snackbar('Error', data['message'] ?? 'Failed to send OTP');
+      }
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -76,15 +86,27 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  onPressed: sendOtp,
-                  child: const Text(
-                    'CONTINUE',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  onPressed: isLoading ? null : sendOtp,
+                  child:
+                      isLoading
+                          ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : const Text(
+                            'CONTINUE',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                 ),
               ),
             ],

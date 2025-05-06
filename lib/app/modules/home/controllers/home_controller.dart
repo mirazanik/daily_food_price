@@ -104,8 +104,12 @@ class HomeController extends GetxController {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // or remove only 'user' and 'token' if needed
-    Get.offAllNamed('/sign-in'); // or use Routes.SIGN_IN if imported
+    await prefs
+        .clear(); // This removes all, including saved_phone and saved_password
+    // OR, if you only want to remove credentials:
+    // await prefs.remove('saved_phone');
+    // await prefs.remove('saved_password');
+    Get.offAllNamed('/sign-in');
   }
 
   // Main fetch function with corrected encoding handling

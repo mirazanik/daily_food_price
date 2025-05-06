@@ -8,13 +8,13 @@ import '../../../routes/app_pages.dart';
 class AuthController extends GetxController {
   var isLoading = false.obs;
 
-  Future<void> login(String username, String password) async {
+  Future<void> login(String phone, String password) async {
     isLoading.value = true;
     try {
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/login'),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {'Username': username, 'Password': password},
+        body: {'Username': phone, 'Password': password},
       );
 
       final data = json.decode(response.body);
@@ -23,6 +23,8 @@ class AuthController extends GetxController {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token']);
         await prefs.setString('user', json.encode(data['user']));
+        await prefs.setString('saved_phone', phone);
+        await prefs.setString('saved_password', password);
 
         // Navigate to home
         Get.offAllNamed(Routes.HOME);
@@ -34,5 +36,11 @@ class AuthController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // or remove only the credentials if you want
+    Get.offAllNamed('/sign-in');
   }
 }

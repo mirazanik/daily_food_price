@@ -26,11 +26,13 @@ class HomeView extends GetView<HomeController> {
               Obx(
                 () => Text(
                   controller.userName.value,
+                  textAlign: TextAlign.left,
                   style: const TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
               Obx(
                 () => Text(
+                  textAlign: TextAlign.left,
                   controller.userPhone.value,
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
@@ -55,9 +57,8 @@ class HomeView extends GetView<HomeController> {
                 CustomImageView(
                   alignment: Alignment.center,
                   imagePath: "assets/images/dashboard.png",
-                  height: 150,
                   width: MediaQuery.of(context).size.width,
-                  fit: BoxFit.fill,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -79,8 +80,7 @@ class HomeView extends GetView<HomeController> {
                 ),
 
                 _FilterSection(controller),
-              
-              
+
                 const SizedBox(height: 8),
                 Obx(() {
                   if (controller.selectedUpazillasId.value.isNotEmpty ||
@@ -94,22 +94,28 @@ class HomeView extends GetView<HomeController> {
                       child: Scrollbar(
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          child: SizedBox(
-                            width: 900,
+                          child: Expanded(
                             child: Column(
                               children: [
                                 Container(
                                   color: const Color(0xFF26A69A),
                                   child: Row(
                                     children: [
-                                      _tableHeaderCell('Product Name', flex: 3),
-                                      _tableHeaderCell('Kawran Bazar'),
-                                      _tableHeaderCell('DAM'),
-                                      _tableHeaderCell('Shwapno'),
+                                      _tableHeaderCell(
+                                        'Product Name',
+                                        width: 120,
+                                      ),
+                                      _tableHeaderCell(
+                                        'Kawran Bazar',
+                                        width: 80,
+                                      ),
+                                      _tableHeaderCell('DAM', width: 60),
+                                      _tableHeaderCell('Shwapno', width: 80),
                                       _tableHeaderCell(
                                         'CNB Bazar, Bagerhat (W.P)',
+                                        width: 120,
                                       ),
-                                      _tableHeaderCell('MinMax'),
+                                      _tableHeaderCell('MinMax', width: 60),
                                     ],
                                   ),
                                 ),
@@ -127,21 +133,28 @@ class HomeView extends GetView<HomeController> {
                                           children: [
                                             _tableBodyCell(
                                               item['ProductName'] ?? '',
-                                              flex: 3,
+                                              width: 120,
                                             ),
                                             _tableBodyCell(
                                               item['Kawran Bazar'] ?? '',
+                                              width: 80,
                                             ),
-                                            _tableBodyCell(item['DAM'] ?? ''),
+                                            _tableBodyCell(
+                                              item['DAM'] ?? '',
+                                              width: 60,
+                                            ),
                                             _tableBodyCell(
                                               item['Shwapno'] ?? '',
+                                              width: 80,
                                             ),
                                             _tableBodyCell(
                                               item['CNB Bazar, Bagerhat  (W.P)'] ??
                                                   '',
+                                              width: 120,
                                             ),
                                             _tableBodyCell(
                                               item['MinMax'] ?? '',
+                                              width: 60,
                                             ),
                                           ],
                                         ),
@@ -314,6 +327,7 @@ class _FilterSection extends StatelessWidget {
                                     ? controller.selectedUpazillasId.value
                                     : null,
                             hint: const Text('Select'),
+                            isExpanded: true,
                             items:
                                 controller.upazillasList
                                     .map<DropdownMenuItem<String>>((district) {
@@ -362,6 +376,7 @@ class _FilterSection extends StatelessWidget {
                                     ? controller.selectedMokamsId.value
                                     : null,
                             hint: const Text('Select'),
+                            isExpanded: true,
                             items:
                                 controller.mokamsList
                                     .map<DropdownMenuItem<String>>((district) {
@@ -439,37 +454,33 @@ Future<void> logout() async {
   Get.offAllNamed('/sign-in'); // or use Routes.SIGN_IN if imported
 }
 
-Widget _tableHeaderCell(String text, {int flex = 1}) {
-  return Expanded(
-    flex: flex,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-        overflow: TextOverflow.ellipsis,
+Widget _tableHeaderCell(String text, {double width = 100}) {
+  return Container(
+    width: width,
+    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+    alignment: Alignment.centerLeft,
+    child: Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+        fontSize: 12,
       ),
+      overflow: TextOverflow.ellipsis,
     ),
   );
 }
 
-Widget _tableBodyCell(String text, {int flex = 1}) {
-  return Expanded(
-    flex: flex,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 11, color: Colors.black87),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 2,
-      ),
+Widget _tableBodyCell(String text, {double width = 100}) {
+  return Container(
+    width: width,
+    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+    alignment: Alignment.centerLeft,
+    child: Text(
+      text,
+      style: const TextStyle(fontSize: 11, color: Colors.black87),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 2,
     ),
   );
 }

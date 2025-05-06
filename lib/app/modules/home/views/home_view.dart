@@ -90,11 +90,12 @@ class HomeView extends GetView<HomeController> {
                       return const Center(child: Text('No data found'));
                     }
                     return SizedBox(
-                      height: 350,
+                      height: 450,
                       child: Scrollbar(
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          child: Expanded(
+                          child: SizedBox(
+                            width: 730,
                             child: Column(
                               children: [
                                 Container(
@@ -103,19 +104,16 @@ class HomeView extends GetView<HomeController> {
                                     children: [
                                       _tableHeaderCell(
                                         'Product Name',
-                                        width: 120,
+                                        flex: 1,
+                                        width: 150,
                                       ),
-                                      _tableHeaderCell(
-                                        'Kawran Bazar',
-                                        width: 80,
-                                      ),
-                                      _tableHeaderCell('DAM', width: 60),
-                                      _tableHeaderCell('Shwapno', width: 80),
+                                      _tableHeaderCell('Kawran Bazar'),
+                                      _tableHeaderCell('DAM'),
+                                      _tableHeaderCell('Shwapno'),
                                       _tableHeaderCell(
                                         'CNB Bazar, Bagerhat (W.P)',
-                                        width: 120,
                                       ),
-                                      _tableHeaderCell('MinMax', width: 60),
+                                      _tableHeaderCell('MinMax'),
                                     ],
                                   ),
                                 ),
@@ -133,28 +131,22 @@ class HomeView extends GetView<HomeController> {
                                           children: [
                                             _tableBodyCell(
                                               item['ProductName'] ?? '',
-                                              width: 120,
+                                              flex: 1,
+                                              width: 150,
                                             ),
                                             _tableBodyCell(
                                               item['Kawran Bazar'] ?? '',
-                                              width: 80,
                                             ),
-                                            _tableBodyCell(
-                                              item['DAM'] ?? '',
-                                              width: 60,
-                                            ),
+                                            _tableBodyCell(item['DAM'] ?? ''),
                                             _tableBodyCell(
                                               item['Shwapno'] ?? '',
-                                              width: 80,
                                             ),
                                             _tableBodyCell(
                                               item['CNB Bazar, Bagerhat  (W.P)'] ??
                                                   '',
-                                              width: 120,
                                             ),
                                             _tableBodyCell(
                                               item['MinMax'] ?? '',
-                                              width: 60,
                                             ),
                                           ],
                                         ),
@@ -454,10 +446,10 @@ Future<void> logout() async {
   Get.offAllNamed('/sign-in'); // or use Routes.SIGN_IN if imported
 }
 
-Widget _tableHeaderCell(String text, {double width = 100}) {
+Widget _tableHeaderCell(String text, {int flex = 1, double width = 100}) {
   return Container(
+    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
     width: width,
-    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
     alignment: Alignment.centerLeft,
     child: Text(
       text,
@@ -466,21 +458,22 @@ Widget _tableHeaderCell(String text, {double width = 100}) {
         fontWeight: FontWeight.bold,
         fontSize: 12,
       ),
+      maxLines: 2,
       overflow: TextOverflow.ellipsis,
     ),
   );
 }
 
-Widget _tableBodyCell(String text, {double width = 100}) {
+Widget _tableBodyCell(String text, {int flex = 1, double width = 100}) {
   return Container(
+    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
     width: width,
-    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
     alignment: Alignment.centerLeft,
     child: Text(
       text,
       style: const TextStyle(fontSize: 11, color: Colors.black87),
       overflow: TextOverflow.ellipsis,
-      maxLines: 2,
+      maxLines: 3,
     ),
   );
 }

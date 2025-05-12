@@ -85,6 +85,19 @@ class HomeView extends GetView<HomeController> {
                 Obx(() {
                   if (controller.selectedUpazillasId.value.isNotEmpty ||
                       controller.selectedMokamsId.value.isNotEmpty) {
+                    if (controller.isLoading.value) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(20.0),
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF26A69A),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
                     final priceList = controller.priceReportList;
                     if (priceList.isEmpty) {
                       return const Center(child: Text('No data found'));
@@ -107,12 +120,17 @@ class HomeView extends GetView<HomeController> {
                                         flex: 1,
                                         width: 150,
                                       ),
-                                      _tableHeaderCell('Kawran Bazar'),
-                                      _tableHeaderCell('DAM'),
-                                      _tableHeaderCell('Shwapno'),
-                                      _tableHeaderCell(
-                                        'CNB Bazar, Bagerhat (W.P)',
-                                      ),
+                                      ...priceList.isNotEmpty
+                                          ? priceList[0]['marketNames']
+                                              .map(
+                                                (market) => _tableHeaderCell(
+                                                  market,
+                                                  flex: 1,
+                                                  width: 100,
+                                                ),
+                                              )
+                                              .toList()
+                                          : [],
                                       _tableHeaderCell('MinMax'),
                                     ],
                                   ),
@@ -134,16 +152,10 @@ class HomeView extends GetView<HomeController> {
                                               flex: 1,
                                               width: 150,
                                             ),
-                                            _tableBodyCell(
-                                              item['Kawran Bazar'] ?? '',
-                                            ),
-                                            _tableBodyCell(item['DAM'] ?? ''),
-                                            _tableBodyCell(
-                                              item['Shwapno'] ?? '',
-                                            ),
-                                            _tableBodyCell(
-                                              item['CNB Bazar, Bagerhat  (W.P)'] ??
-                                                  '',
+                                            ...item['marketNames'].map(
+                                              (market) => _tableBodyCell(
+                                                item[market] ?? 'N/A',
+                                              ),
                                             ),
                                             _tableBodyCell(
                                               item['MinMax'] ?? '',

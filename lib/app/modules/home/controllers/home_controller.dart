@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class HomeController extends GetxController {
   var userName = ''.obs;
   var userPhone = ''.obs;
+  var isLoading = false.obs; // Add loading state
 
   // Date picker
   var selectedDate = DateTime.now().obs;
@@ -114,74 +115,71 @@ class HomeController extends GetxController {
 
   // Main fetch function with corrected encoding handling
   Future<void> fetchPriceReport() async {
+    isLoading.value = true; // Start loading
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
 
     try {
-      // First, let's see what encoding the server is using
       final response = await http.post(
         Uri.parse(
           'https://wa.acibd.com/price-survey/api/get-district-wise-daily-food-price-report',
         ),
         headers: {'Authorization': 'Bearer $token'},
         body: {
-          'districtID': "01",
-          'upazillaID': "0134",
-          'mokamID': "14",
-          'date': "2025-02-19",
+          'districtID': selectedDistrictId.value,
+          'upazillaID': selectedUpazillasId.value,
+          'mokamID': selectedMokamsId.value,
+          'date':
+              selectedDate.value.toString().split(' ')[0], // Format: YYYY-MM-DD
         },
       );
 
-      // Debug information to examine the response
-      print('Response Status Code: ${response.statusCode}');
-      print('Response Content-Type: ${response.headers['content-type']}');
-
       if (response.statusCode == 200) {
-        // Attempt multiple decoding approaches to diagnose the issue
+        final rawUtf8 = utf8.decode(response.bodyBytes);
+        final data = json.decode(rawUtf8);
 
-        // Option 1: Direct UTF-8 decode of response body bytes
-        try {
-          final rawUtf8 = utf8.decode(response.bodyBytes);
-          print(
-            'Raw UTF-8 decode sample: ${rawUtf8.substring(0, min(100, rawUtf8.length))}',
+        if (data != null && data['priceReport'] != null) {
+          // Process each item in the price report
+          final processedReport =
+              (data['priceReport'] as List).map((item) {
+                final Map<String, dynamic> processedItem =
+                    Map<String, dynamic>.from(item);
+
+                // Fix Bangla text in ProductName
+                if (processedItem.containsKey('ProductName')) {
+                  processedItem['ProductName'] = decodeUtf8Escaped(
+                    processedItem['ProductName'],
+                  );
+                }
+
+                // Get all market names dynamically (excluding ProductCode, ProductName, and MinMax)
+                final marketNames =
+                    processedItem.keys
+                        .where(
+                          (key) =>
+                              key != 'ProductCode' &&
+                              key != 'ProductName' &&
+                              key != 'MinMax',
+                        )
+                        .toList();
+
+                // Add market names to the item for UI reference
+                processedItem['marketNames'] = marketNames;
+
+                return processedItem;
+              }).toList();
+
+          priceReportList.value = processedReport;
+          priceReportList.refresh();
+        } else {
+          priceReportList.value = [];
+          Get.snackbar(
+            'Info',
+            'No price data available for the selected criteria',
           );
-
-          final data = json.decode(rawUtf8);
-
-          // First check if we can parse the JSON correctly
-          if (data != null && data['priceReport'] != null) {
-            priceReportList.value = data['priceReport'];
-
-            // Test print the first item to see if we need further repair
-            if (priceReportList.value.isNotEmpty) {
-              final firstProduct = priceReportList.value.first;
-              print(
-                'First product with direct UTF-8 decode: ${firstProduct['ProductName']}',
-              );
-
-              // Check if the Bangla text needs fixing
-              if (firstProduct['ProductName'].contains('à¦')) {
-                print('Detected mojibake - applying fix');
-                _applyBanglaFix();
-              } else {
-                print('No mojibake detected - UTF-8 decode worked correctly');
-              }
-            }
-
-            for (var product in data['priceReport']) {
-              print(decodeUtf8Escaped(product['ProductName']));
-            }
-          }
-        } catch (e) {
-          print('UTF-8 decode error: $e');
-        }
-
-        // If we're still seeing issues, try this advanced fix:
-        if (_isMojibakePresent()) {
-          _applyAdvancedBanglaFix();
         }
       } else {
-        print('Unexpected response: ${response.body}');
+        print('Error response: ${response.body}');
         priceReportList.value = [];
         Get.snackbar('Error', 'Failed to fetch price report');
       }
@@ -189,6 +187,8 @@ class HomeController extends GetxController {
       print('Error fetching price report: $e');
       priceReportList.value = [];
       Get.snackbar('Error', 'Failed to fetch price report');
+    } finally {
+      isLoading.value = false; // End loading
     }
   }
 

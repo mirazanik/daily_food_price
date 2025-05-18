@@ -60,25 +60,25 @@ class HomeView extends GetView<HomeController> {
                   width: MediaQuery.of(context).size.width,
                   fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
+                // const SizedBox(height: 8),
 
-                    hintText: 'Search',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                ),
-
+                // TextField(
+                //   decoration: InputDecoration(
+                //     contentPadding: EdgeInsets.symmetric(
+                //       horizontal: 8,
+                //       vertical: 8,
+                //     ),
+                //
+                //     hintText: 'Search',
+                //     prefixIcon: const Icon(Icons.search),
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(30),
+                //       borderSide: BorderSide.none,
+                //     ),
+                //     filled: true,
+                //     fillColor: Colors.grey[200],
+                //   ),
+                // ),
                 _FilterSection(controller),
 
                 const SizedBox(height: 8),
@@ -137,6 +137,7 @@ class HomeView extends GetView<HomeController> {
                                 ),
                                 Expanded(
                                   child: ListView.builder(
+                                    physics: NeverScrollableScrollPhysics(),
                                     itemCount: priceList.length,
                                     itemBuilder: (context, index) {
                                       final item = priceList[index];
@@ -277,14 +278,54 @@ class _FilterSection extends StatelessWidget {
                               ? controller.selectedDistrictId.value
                               : null,
                       hint: const Text('Select'),
+                      padding: const EdgeInsets.all(0),
+                      dropdownColor: Colors.white.withOpacity(0.6),
+                      isExpanded: true,
+                      icon: const Icon(
+                        Icons.arrow_drop_down,
+                        color: Colors.grey,
+                      ),
+                      iconSize: 24,
+                      elevation: 0,
+                      // This is the key addition - it controls how the selected value appears in the button
+                      selectedItemBuilder: (BuildContext context) {
+                        return controller.districtList.map<Widget>((district) {
+                          // This widget is what shows in the button when an item is selected
+                          return Container(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              district['DistrictName'],
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList();
+                      },
                       items:
                           controller.districtList.map<DropdownMenuItem<String>>(
                             (district) {
+                              final isSubmitted = district['Submitted'] == 'Y';
                               return DropdownMenuItem<String>(
                                 value: district['DistrictCode'],
-                                child: Text(
-                                  district['DistrictName'],
-                                  style: const TextStyle(fontSize: 12),
+                                child: Container(
+                                  color:
+                                      isSubmitted ? Colors.white : Colors.grey,
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  margin: EdgeInsets.zero,
+                                  child: Text(
+                                    district['DistrictName'],
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black,
+                                    ),
+                                  ),
                                 ),
                               );
                             },

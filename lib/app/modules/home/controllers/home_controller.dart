@@ -57,6 +57,7 @@ class HomeController extends GetxController {
     );
     if (picked != null && picked != selectedDate.value) {
       selectedDate.value = picked;
+      fetchPriceReport();
     }
   }
 
@@ -119,155 +120,84 @@ class HomeController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
 
-    try {
-      final response = await http.post(
-        Uri.parse(
-          'https://wa.acibd.com/price-survey/api/get-district-wise-daily-food-price-report',
-        ),
-        headers: {'Authorization': 'Bearer $token'},
-        body: {
-          'districtID': selectedDistrictId.value,
-          'upazillaID': selectedUpazillasId.value,
-          'mokamID': selectedMokamsId.value,
-          'date':
-              selectedDate.value.toString().split(' ')[0], // Format: YYYY-MM-DD
-        },
-      );
+    if (selectedDistrictId.value.isNotEmpty &&
+        selectedUpazillasId.value.isNotEmpty) {
+      try {
+        final response = await http.post(
+          Uri.parse(
+            'https://wa.acibd.com/price-survey/api/get-district-wise-daily-food-price-report',
+          ),
+          headers: {'Authorization': 'Bearer $token'},
+          body: {
+            'districtID': selectedDistrictId.value,
+            'upazillaID': selectedUpazillasId.value,
+            'mokamID': selectedMokamsId.value,
+            'date':
+                selectedDate.value.toString().split(
+                  ' ',
+                )[0], // Format: YYYY-MM-DD
+          },
+        );
 
-      if (response.statusCode == 200) {
-        final rawUtf8 = utf8.decode(response.bodyBytes);
-        final data = json.decode(rawUtf8);
+        if (response.statusCode == 200) {
+          final rawUtf8 = utf8.decode(response.bodyBytes);
+          final data = json.decode(rawUtf8);
 
-        if (data != null && data['priceReport'] != null) {
-          // Process each item in the price report
-          final processedReport =
-              (data['priceReport'] as List).map((item) {
-                final Map<String, dynamic> processedItem =
-                    Map<String, dynamic>.from(item);
+          if (data != null && data['priceReport'] != null) {
+            // Process each item in the price report
+            final processedReport =
+                (data['priceReport'] as List).map((item) {
+                  final Map<String, dynamic> processedItem =
+                      Map<String, dynamic>.from(item);
 
-                // Fix Bangla text in ProductName
-                if (processedItem.containsKey('ProductName')) {
-                  processedItem['ProductName'] = decodeUtf8Escaped(
-                    processedItem['ProductName'],
-                  );
-                }
+                  // Fix Bangla text in ProductName
+                  if (processedItem.containsKey('ProductName')) {
+                    processedItem['ProductName'] = decodeUtf8Escaped(
+                      processedItem['ProductName'],
+                    );
+                  }
 
-                // Get all market names dynamically (excluding ProductCode, ProductName, and MinMax)
-                final marketNames =
-                    processedItem.keys
-                        .where(
-                          (key) =>
-                              key != 'ProductCode' &&
-                              key != 'ProductName' &&
-                              key != 'MinMax',
-                        )
-                        .toList();
+                  // Get all market names dynamically (excluding ProductCode, ProductName, and MinMax)
+                  final marketNames =
+                      processedItem.keys
+                          .where(
+                            (key) =>
+                                key != 'ProductCode' &&
+                                key != 'ProductName' &&
+                                key != 'MinMax',
+                          )
+                          .toList();
 
-                // Add market names to the item for UI reference
-                processedItem['marketNames'] = marketNames;
+                  // Add market names to the item for UI reference
+                  processedItem['marketNames'] = marketNames;
 
-                return processedItem;
-              }).toList();
+                  return processedItem;
+                }).toList();
 
-          priceReportList.value = processedReport;
-          priceReportList.refresh();
+            priceReportList.value = processedReport;
+            priceReportList.refresh();
+          } else {
+            priceReportList.value = [];
+            Get.snackbar(
+              'Info',
+              'No price data available for the selected criteria',
+            );
+          }
         } else {
+          print('Error response: ${response.body}');
           priceReportList.value = [];
-          Get.snackbar(
-            'Info',
-            'No price data available for the selected criteria',
-          );
+          Get.snackbar('Error', 'Failed to fetch price report');
         }
-      } else {
-        print('Error response: ${response.body}');
+      } catch (e) {
+        print('Error fetching price report: $e');
         priceReportList.value = [];
         Get.snackbar('Error', 'Failed to fetch price report');
+      } finally {
+        isLoading.value = false; // End loading
       }
-    } catch (e) {
-      print('Error fetching price report: $e');
+    } else {
       priceReportList.value = [];
-      Get.snackbar('Error', 'Failed to fetch price report');
-    } finally {
-      isLoading.value = false; // End loading
     }
-  }
-
-  // Helper method to check if mojibake is present
-  bool _isMojibakePresent() {
-    if (priceReportList.value.isEmpty) return false;
-
-    // Check the first few items for the mojibake pattern
-    int checkCount = min(5, priceReportList.value.length);
-    for (int i = 0; i < checkCount; i++) {
-      String productName = priceReportList.value[i]['ProductName'] ?? '';
-      if (productName.contains('à¦')) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Apply the Bangla fix to the price report list
-  void _applyBanglaFix() {
-    for (int i = 0; i < priceReportList.value.length; i++) {
-      var item = Map<String, dynamic>.from(priceReportList.value[i]);
-      if (item.containsKey('ProductName')) {
-        item['ProductName'] = decodeUtf8Escaped(item['ProductName']);
-      }
-      priceReportList.value[i] = item;
-    }
-    priceReportList.refresh();
-
-    // Print a sample after fixing to verify
-    if (priceReportList.value.isNotEmpty) {
-      print('Sample after fix: ${priceReportList.value[0]['ProductName']}');
-    }
-  }
-
-  // More advanced fix that tries multiple approaches
-  void _applyAdvancedBanglaFix() {
-    for (int i = 0; i < priceReportList.value.length; i++) {
-      var item = Map<String, dynamic>.from(priceReportList.value[i]);
-
-      if (item.containsKey('ProductName')) {
-        String original = item['ProductName'];
-
-        // Try multiple approaches and use the one that works
-        List<String> attempts = [
-          fixBangla(original), // Standard fix
-          fixDoubleMojibake(original), // For double encoding issues
-          fixWithWindows1252(original), // For Windows-1252 encoding issues
-        ];
-
-        // Print debugging info
-        print('Original: $original');
-        print('Fix 1: ${attempts[0]}');
-        print('Fix 2: ${attempts[1]}');
-        print('Fix 3: ${attempts[2]}');
-
-        // Choose the best result (this is heuristic and may need adjustment)
-        String fixed = _chooseBestResult(attempts);
-        item['ProductName'] = fixed;
-      }
-
-      priceReportList.value[i] = item;
-    }
-
-    priceReportList.refresh();
-  }
-
-  // Choose the best result based on heuristics
-  String _chooseBestResult(List<String> attempts) {
-    // Simple heuristic: prefer strings with Bangla characters
-    for (String attempt in attempts) {
-      // Check if string contains Bangla Unicode range
-      if (attempt.codeUnits.any((c) => c >= 0x0980 && c <= 0x09FF)) {
-        return attempt;
-      }
-    }
-
-    // If no clear winner, return the first attempt
-    return attempts[0];
   }
 
   // Standard fix for UTF-8 text incorrectly decoded as Latin-1

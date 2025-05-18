@@ -92,7 +92,6 @@ class HomeController extends GetxController {
     );
     if (response.statusCode == 200) {
       print(response.statusCode);
-      print("Daab er pani");
       print(response.body);
       final data = json.decode(utf8.decode(response.bodyBytes));
       final upazila = data['upazillas'] ?? [];
@@ -120,83 +119,89 @@ class HomeController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
 
-    if (selectedDistrictId.value.isNotEmpty &&
-        selectedUpazillasId.value.isNotEmpty) {
-      try {
-        final response = await http.post(
-          Uri.parse(
-            'https://wa.acibd.com/price-survey/api/get-district-wise-daily-food-price-report',
-          ),
-          headers: {'Authorization': 'Bearer $token'},
-          body: {
-            'districtID': selectedDistrictId.value,
-            'upazillaID': selectedUpazillasId.value,
-            'mokamID': selectedMokamsId.value,
-            'date':
-                selectedDate.value.toString().split(
-                  ' ',
-                )[0], // Format: YYYY-MM-DD
-          },
-        );
+    print("###############################################################");
 
-        if (response.statusCode == 200) {
-          final rawUtf8 = utf8.decode(response.bodyBytes);
-          final data = json.decode(rawUtf8);
+    print("###############################################################");
+    print(selectedDistrictId.value);
+    print(selectedUpazillasId.value);
+    print(selectedMokamsId.value);
+    print(selectedDate.value);
+    print("###############################################################");
+    try {
+      final response = await http.post(
+        Uri.parse(
+          'https://wa.acibd.com/price-survey/api/get-district-wise-daily-food-price-report',
+        ),
+        headers: {'Authorization': 'Bearer $token'},
+        body: {
+          'districtID': selectedDistrictId.value,
+          'upazillaID': selectedUpazillasId.value,
+          'mokamID': selectedMokamsId.value,
+          'date':
+              selectedDate.value.toString().split(' ')[0], // Format: YYYY-MM-DD
+        },
+      );
 
-          if (data != null && data['priceReport'] != null) {
-            // Process each item in the price report
-            final processedReport =
-                (data['priceReport'] as List).map((item) {
-                  final Map<String, dynamic> processedItem =
-                      Map<String, dynamic>.from(item);
+      if (response.statusCode == 200) {
+        final rawUtf8 = utf8.decode(response.bodyBytes);
+        final data = json.decode(rawUtf8);
 
-                  // Fix Bangla text in ProductName
-                  if (processedItem.containsKey('ProductName')) {
-                    processedItem['ProductName'] = decodeUtf8Escaped(
-                      processedItem['ProductName'],
-                    );
-                  }
+        print(data);
 
-                  // Get all market names dynamically (excluding ProductCode, ProductName, and MinMax)
-                  final marketNames =
-                      processedItem.keys
-                          .where(
-                            (key) =>
-                                key != 'ProductCode' &&
-                                key != 'ProductName' &&
-                                key != 'MinMax',
-                          )
-                          .toList();
+        if (data != null && data['priceReport'] != null) {
+          // Process each item in the price report
+          final processedReport =
+              (data['priceReport'] as List).map((item) {
+                final Map<String, dynamic> processedItem =
+                    Map<String, dynamic>.from(item);
 
-                  // Add market names to the item for UI reference
-                  processedItem['marketNames'] = marketNames;
+                // Fix Bangla text in ProductName
+                if (processedItem.containsKey('ProductName')) {
+                  processedItem['ProductName'] = decodeUtf8Escaped(
+                    processedItem['ProductName'],
+                  );
+                }
 
-                  return processedItem;
-                }).toList();
+                // Get all market names dynamically (excluding ProductCode, ProductName, and MinMax)
+                final marketNames =
+                    processedItem.keys
+                        .where(
+                          (key) =>
+                              key != 'ProductCode' &&
+                              key != 'ProductName' &&
+                              key != 'MinMax',
+                        )
+                        .toList();
 
-            priceReportList.value = processedReport;
-            priceReportList.refresh();
-          } else {
-            priceReportList.value = [];
-            Get.snackbar(
-              'Info',
-              'No price data available for the selected criteria',
-            );
-          }
+                // Add market names to the item for UI reference
+                processedItem['marketNames'] = marketNames;
+
+                return processedItem;
+              }).toList();
+
+          priceReportList.value = processedReport;
+          priceReportList.refresh();
+
+          print("dddddddddddddddddddddddddddddddddR");
+          print(processedReport);
         } else {
-          print('Error response: ${response.body}');
           priceReportList.value = [];
-          Get.snackbar('Error', 'Failed to fetch price report');
+          Get.snackbar(
+            'Info',
+            'No price data available for the selected criteria',
+          );
         }
-      } catch (e) {
-        print('Error fetching price report: $e');
+      } else {
+        print('Error response: ${response.body}');
         priceReportList.value = [];
         Get.snackbar('Error', 'Failed to fetch price report');
-      } finally {
-        isLoading.value = false; // End loading
       }
-    } else {
+    } catch (e) {
+      print('Error fetching price report: $e');
       priceReportList.value = [];
+      Get.snackbar('Error', 'Failed to fetch price report');
+    } finally {
+      isLoading.value = false; // End loading
     }
   }
 

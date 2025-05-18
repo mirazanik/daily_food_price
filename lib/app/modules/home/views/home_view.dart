@@ -83,8 +83,7 @@ class HomeView extends GetView<HomeController> {
 
                 const SizedBox(height: 8),
                 Obx(() {
-                  if (controller.selectedUpazillasId.value.isNotEmpty ||
-                      controller.selectedMokamsId.value.isNotEmpty) {
+                  if (true) {
                     if (controller.isLoading.value) {
                       return const Center(
                         child: Padding(
@@ -137,7 +136,7 @@ class HomeView extends GetView<HomeController> {
                                 ),
                                 Expanded(
                                   child: ListView.builder(
-                                    physics: NeverScrollableScrollPhysics(),
+                                    physics: AlwaysScrollableScrollPhysics(),
                                     itemCount: priceList.length,
                                     itemBuilder: (context, index) {
                                       final item = priceList[index];
@@ -312,7 +311,9 @@ class _FilterSection extends StatelessWidget {
                                 value: district['DistrictCode'],
                                 child: Container(
                                   color:
-                                      isSubmitted ? Colors.white : Colors.grey,
+                                      isSubmitted
+                                          ? Color(0xFF24F6E3)
+                                          : Colors.white,
                                   width: double.infinity,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
@@ -333,6 +334,7 @@ class _FilterSection extends StatelessWidget {
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           controller.selectedDistrictId.value = newValue;
+                          controller.fetchPriceReport();
                           controller.fetchUpazilaMokam(newValue);
                         }
                       },

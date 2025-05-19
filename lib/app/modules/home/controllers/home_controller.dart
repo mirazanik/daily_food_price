@@ -31,11 +31,18 @@ class HomeController extends GetxController {
     return '$day/$month/$year';
   }
 
+  String getFormattedSelectedDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString();
+    return '$year-$month-$day';
+  }
+
   @override
   void onInit() {
     super.onInit();
     loadUserInfo();
-    fetchDistricts();
+    fetchDistricts(getFormattedSelectedDate(DateTime.now()));
   }
 
   Future<void> loadUserInfo() async {
@@ -57,16 +64,19 @@ class HomeController extends GetxController {
     );
     if (picked != null && picked != selectedDate.value) {
       selectedDate.value = picked;
+      fetchDistricts(getFormattedSelectedDate(selectedDate.value));
       fetchPriceReport();
     }
   }
 
-  Future<void> fetchDistricts() async {
+  Future<void> fetchDistricts(String date) async {
+    print(date);
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
-    final response = await http.get(
+    final response = await http.post(
       Uri.parse('https://wa.acibd.com/price-survey/api/get-all-districts'),
       headers: {'Authorization': 'Bearer $token'},
+      body: {'date': date},
     );
     if (response.statusCode == 200) {
       print(response.body);

@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class HomeController extends GetxController {
   var userName = ''.obs;
   var userPhone = ''.obs;
-  var isLoading = false.obs; // Add loading state
+  var isLoading = true.obs; // Add loading state
 
   // Date picker
   var selectedDate = DateTime.now().obs;
@@ -46,6 +46,7 @@ class HomeController extends GetxController {
   }
 
   Future<void> loadUserInfo() async {
+    isLoading.value = true; // Start loading
     final prefs = await SharedPreferences.getInstance();
     final userString = prefs.getString('user');
     if (userString != null) {
@@ -53,6 +54,7 @@ class HomeController extends GetxController {
       userName.value = userMap['CustomerName'] ?? '';
       userPhone.value = userMap['CustomerMobile'] ?? '';
     }
+    isLoading.value = false; // End loading
   }
 
   void pickDate(BuildContext context) async {
@@ -70,6 +72,7 @@ class HomeController extends GetxController {
   }
 
   Future<void> fetchDistricts(String date) async {
+    isLoading.value = true; // Start loading
     print(date);
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
@@ -88,9 +91,12 @@ class HomeController extends GetxController {
       //   fetchUpazilaMokam(districts[0]['DistrictCode']);
       // }
     }
+    isLoading.value = false; // End loading
   }
 
   Future<void> fetchUpazilaMokam(String districtId) async {
+    isLoading.value = true; // Start loading
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
     final response = await http.post(
@@ -111,6 +117,8 @@ class HomeController extends GetxController {
       selectedUpazillasId.value = '';
       selectedMokamsId.value = '';
     }
+
+    isLoading.value = false; // End loading
   }
 
   Future<void> logout() async {
@@ -166,11 +174,11 @@ class HomeController extends GetxController {
                     Map<String, dynamic>.from(item);
 
                 // Fix Bangla text in ProductName
-                if (processedItem.containsKey('ProductName')) {
+                /*if (processedItem.containsKey('ProductName')) {
                   processedItem['ProductName'] = decodeUtf8Escaped(
                     processedItem['ProductName'],
                   );
-                }
+                }*/
 
                 // Get all market names dynamically (excluding ProductCode, ProductName, and MinMax)
                 final marketNames =
@@ -215,7 +223,7 @@ class HomeController extends GetxController {
     }
   }
 
-  // Standard fix for UTF-8 text incorrectly decoded as Latin-1
+  /* // Standard fix for UTF-8 text incorrectly decoded as Latin-1
   String fixBangla(String mojibake) {
     try {
       return utf8.decode(latin1.encode(mojibake));
@@ -271,5 +279,5 @@ class HomeController extends GetxController {
   String decodeUtf8Escaped(String input) {
     final bytes = input.codeUnits;
     return utf8.decode(bytes, allowMalformed: true);
-  }
+  }*/
 }

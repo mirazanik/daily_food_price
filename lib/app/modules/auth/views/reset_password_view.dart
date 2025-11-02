@@ -84,19 +84,23 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Create New Password',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Your new password must be different from previously used password.',
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 14),
               ),
               const SizedBox(height: 32),
               TextField(
                 controller: passwordController,
                 obscureText: obscurePassword,
+                style: Theme.of(context).textTheme.bodyMedium,
                 decoration: InputDecoration(
                   hintText: 'New Password',
                   border: OutlineInputBorder(
@@ -119,6 +123,7 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
               TextField(
                 controller: confirmPasswordController,
                 obscureText: obscureConfirmPassword,
+                style: Theme.of(context).textTheme.bodyMedium,
                 decoration: InputDecoration(
                   hintText: 'Confirm Password',
                   border: OutlineInputBorder(
@@ -144,12 +149,6 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF26A69A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
                   onPressed: isLoading ? null : resetPassword,
                   child:
                       isLoading
@@ -168,7 +167,6 @@ class _ResetPasswordViewState extends State<ResetPasswordView> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
                             ),
                           ),
                 ),

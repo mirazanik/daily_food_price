@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../routes/app_pages.dart';
 
@@ -24,11 +26,11 @@ class _SignUpViewState extends State<SignUpView> {
 
   @override
   Widget build(BuildContext context) {
-    nameController.text = 'Md. Miraz';
-    phoneController.text = '01521432621';
-    addressController.text = 'Dhaka, Bangladesh';
-    passwordController.text = '123456';
-    confirmPasswordController.text = '123456';
+    nameController.text = '';
+    phoneController.text = '';
+    addressController.text = '';
+    passwordController.text = '';
+    confirmPasswordController.text = '';
     return Scaffold(
       appBar: AppBar(title: const Text('')),
       body: SingleChildScrollView(
@@ -41,12 +43,17 @@ class _SignUpViewState extends State<SignUpView> {
                 Text(
                   'Sign Up',
                   textAlign: TextAlign.start,
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Create an account to continue!',
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontSize: 14,
+                  ),
                 ),
                 Column(
                   children: [
@@ -112,14 +119,8 @@ class _SignUpViewState extends State<SignUpView> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF26A69A),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
                         onPressed: () {
-      
+
                           signUpAndNavigate(
                             customerName: nameController.text,
                             customerMobile: phoneController.text,
@@ -133,7 +134,6 @@ class _SignUpViewState extends State<SignUpView> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -142,16 +142,16 @@ class _SignUpViewState extends State<SignUpView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'Already have an account? ',
-                          style: TextStyle(color: Colors.black54),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                         GestureDetector(
                           onTap: () => Get.toNamed(Routes.SIGN_IN),
-                          child: const Text(
+                          child: Text(
                             'Sign in',
                             style: TextStyle(
-                              color: Color(0xFF26A69A),
+                              color: Theme.of(context).primaryColor,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -163,23 +163,34 @@ class _SignUpViewState extends State<SignUpView> {
                       child: Text.rich(
                         TextSpan(
                           text: 'By tapping "Sign Up" you accept our ',
-                          style: const TextStyle(
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             fontSize: 12,
-                            color: Colors.black54,
                           ),
                           children: [
                             TextSpan(
                               text: 'terms',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
+                                decoration: TextDecoration.underline,
                               ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  _launchURL('https://app.acibd.com/billprinting/terms-and-condition');
+                                },
                             ),
                             const TextSpan(text: ' and '),
                             TextSpan(
                               text: 'privacy policy',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: Theme.of(context).primaryColor,
+                                decoration: TextDecoration.underline,
                               ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  _launchURL('https://app.acibd.com/billprinting/privacy-policy');
+                                },
                             ),
                           ],
                         ),
@@ -197,6 +208,13 @@ class _SignUpViewState extends State<SignUpView> {
     );
   }
 
+  Future<void> _launchURL(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      Get.snackbar('Error', 'Could not open the link');
+    }
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String hint,
@@ -209,6 +227,7 @@ class _SignUpViewState extends State<SignUpView> {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      style: Theme.of(context).textTheme.bodyMedium,
       decoration: InputDecoration(
         prefixIcon: Icon(icon),
         hintText: hint,

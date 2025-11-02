@@ -47,22 +47,25 @@ class _SignInViewState extends State<SignInView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 40),
-                    const Text(
+                    Text(
                       'Sign In',
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Welcome!\nPlease Login for taking our services.',
-                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 14,
+                      ),
                     ),
                     const SizedBox(height: 32),
                     TextField(
                       controller: phoneController,
                       keyboardType: TextInputType.phone,
+                      style: Theme.of(context).textTheme.bodyMedium,
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.phone),
                         hintText: 'Phone Number',
@@ -78,6 +81,7 @@ class _SignInViewState extends State<SignInView> {
                     TextField(
                       controller: passwordController,
                       obscureText: obscurePassword,
+                      style: Theme.of(context).textTheme.bodyMedium,
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.lock),
                         hintText: 'Password',
@@ -106,12 +110,6 @@ class _SignInViewState extends State<SignInView> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF26A69A),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
                         onPressed: () {
                           authController.login(
                             phoneController.text.trim(),
@@ -123,7 +121,6 @@ class _SignInViewState extends State<SignInView> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -135,9 +132,9 @@ class _SignInViewState extends State<SignInView> {
                         onPressed: () {
                           Get.toNamed(Routes.FORGOT_PASSWORD);
                         },
-                        child: const Text(
+                        child: Text(
                           'Forgot password?',
-                          style: TextStyle(color: Colors.black54),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
                     ),
@@ -145,16 +142,16 @@ class _SignInViewState extends State<SignInView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           "Don't have an account? ",
-                          style: TextStyle(color: Colors.black54),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                         GestureDetector(
                           onTap: () => Get.toNamed(Routes.SIGN_UP),
-                          child: const Text(
+                          child: Text(
                             'Sign up',
                             style: TextStyle(
-                              color: Color(0xFF26A69A),
+                              color: Theme.of(context).primaryColor,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

@@ -53,19 +53,23 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Password recovery',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Please enter your registration phone number for the verification process, we will send a 6-digit code to your phone.',
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 14),
               ),
               const SizedBox(height: 32),
               TextField(
                 controller: phoneController,
                 keyboardType: TextInputType.phone,
+                style: Theme.of(context).textTheme.bodyMedium,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.phone),
                   hintText: 'Phone Number',
@@ -80,12 +84,6 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF26A69A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
                   onPressed: isLoading ? null : sendOtp,
                   child:
                       isLoading
@@ -104,7 +102,6 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
                             ),
                           ),
                 ),

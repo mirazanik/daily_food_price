@@ -28,7 +28,7 @@ class _SplashViewState extends State<SplashView> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF26A69A),
+      backgroundColor: Theme.of(context).primaryColor,
       body: CustomImageView(
         alignment: Alignment.center,
         imagePath: "assets/images/logo.png",

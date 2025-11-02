@@ -1,4 +1,6 @@
 import 'package:daily_food_price/constants/custom_image_view.dart';
+import 'package:daily_food_price/constants/app_theme.dart';
+import 'package:daily_food_price/controllers/theme_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,16 +12,12 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeController themeController = Get.find();
+
     return DefaultTabController(
       length: 1,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: const Color(0xFF26A69A),
-          elevation: 0,
-          // leading: IconButton(
-          //   icon: const Icon(Icons.menu, color: Colors.white),
-          //   onPressed: () {},
-          // ),
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -27,24 +25,39 @@ class HomeView extends GetView<HomeController> {
                 () => Text(
                   controller.userName.value,
                   textAlign: TextAlign.left,
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                  style: const TextStyle(fontSize: 18),
                 ),
               ),
               Obx(
                 () => Text(
                   textAlign: TextAlign.left,
                   controller.userPhone.value,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(
+                    color: Theme.of(context).appBarTheme.foregroundColor?.withOpacity(0.7),
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
           ),
           actions: [
+            Obx(
+              () => IconButton(
+                icon: Icon(
+                  themeController.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                ),
+                onPressed: () {
+                  themeController.toggleTheme();
+                },
+                tooltip: 'Toggle Theme',
+              ),
+            ),
             IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
+              icon: const Icon(Icons.logout),
               onPressed: () {
                 controller.logout();
               },
+              tooltip: 'Logout',
             ),
           ],
         ),
@@ -99,7 +112,12 @@ class HomeView extends GetView<HomeController> {
 
                     final priceList = controller.priceReportList;
                     if (priceList.isEmpty) {
-                      return const Center(child: Text('No data found'));
+                      return Center(
+                        child: Text(
+                          'No data found',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      );
                     }
                     return SizedBox(
                       height: 450,
@@ -111,10 +129,11 @@ class HomeView extends GetView<HomeController> {
                             child: Column(
                               children: [
                                 Container(
-                                  color: const Color(0xFF26A69A),
+                                  color: AppTheme.getTableHeaderColor(context),
                                   child: Row(
                                     children: [
                                       _tableHeaderCell(
+                                        context,
                                         'Product Name',
                                         flex: 1,
                                         width: 150,
@@ -123,6 +142,7 @@ class HomeView extends GetView<HomeController> {
                                           ? priceList[0]['marketNames']
                                               .map(
                                                 (market) => _tableHeaderCell(
+                                                  context,
                                                   market,
                                                   flex: 1,
                                                   width: 100,
@@ -141,19 +161,18 @@ class HomeView extends GetView<HomeController> {
                                     itemBuilder: (context, index) {
                                       final item = priceList[index];
                                       return Container(
-                                        color:
-                                            index % 2 == 0
-                                                ? Colors.white
-                                                : Colors.grey[100],
+                                        color: AppTheme.getTableRowColor(context, index),
                                         child: Row(
                                           children: [
                                             _tableBodyCell(
+                                              context,
                                               item['ProductName'] ?? '',
                                               flex: 1,
                                               width: 150,
                                             ),
                                             ...item['marketNames'].map(
                                               (market) => _tableBodyCell(
+                                                context,
                                                 item[market] ?? 'N/A',
                                               ),
                                             ),
@@ -215,7 +234,7 @@ class _FilterSection extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppTheme.getFilterBackgroundColor(context),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -242,15 +261,15 @@ class _FilterSection extends StatelessWidget {
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: AppTheme.getInputFillColor(context),
                         ),
                         child: Row(
                           children: [
                             Text(
                               controller.formattedSelectedDate,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 15,
-                                color: Colors.black87,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
                               ),
                             ),
                             const Spacer(),
@@ -278,11 +297,11 @@ class _FilterSection extends StatelessWidget {
                               : null,
                       hint: const Text('Select'),
                       padding: const EdgeInsets.all(0),
-                      dropdownColor: Colors.white.withOpacity(0.6),
+                      dropdownColor: AppTheme.getInputFillColor(context),
                       isExpanded: true,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_drop_down,
-                        color: Colors.grey,
+                        color: Theme.of(context).iconTheme.color,
                       ),
                       iconSize: 24,
                       elevation: 0,
@@ -294,9 +313,9 @@ class _FilterSection extends StatelessWidget {
                             alignment: Alignment.centerLeft,
                             child: Text(
                               district['DistrictName'],
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.black,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -310,10 +329,7 @@ class _FilterSection extends StatelessWidget {
                               return DropdownMenuItem<String>(
                                 value: district['DistrictCode'],
                                 child: Container(
-                                  color:
-                                      isSubmitted
-                                          ? Color(0xFF24F6E3)
-                                          : Colors.white,
+                                  color: AppTheme.getDropdownHighlightColor(context, isSubmitted),
                                   width: double.infinity,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 16,
@@ -322,9 +338,9 @@ class _FilterSection extends StatelessWidget {
                                   margin: EdgeInsets.zero,
                                   child: Text(
                                     district['DistrictName'],
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.black,
+                                      color: Theme.of(context).textTheme.bodyLarge?.color,
                                     ),
                                   ),
                                 ),
@@ -348,7 +364,7 @@ class _FilterSection extends StatelessWidget {
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: AppTheme.getInputFillColor(context),
                       ),
                     ),
                   ),
@@ -404,7 +420,7 @@ class _FilterSection extends StatelessWidget {
                                 borderSide: BorderSide.none,
                               ),
                               filled: true,
-                              fillColor: Colors.white,
+                              fillColor: AppTheme.getInputFillColor(context),
                             ),
                           ),
                         ),
@@ -452,7 +468,7 @@ class _FilterSection extends StatelessWidget {
                                 borderSide: BorderSide.none,
                               ),
                               filled: true,
-                              fillColor: Colors.white,
+                              fillColor: AppTheme.getInputFillColor(context),
                             ),
                           ),
                         ),
@@ -481,9 +497,9 @@ class _FilterField extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
               fontSize: 15,
             ),
           ),
@@ -501,7 +517,7 @@ Future<void> logout() async {
   Get.offAllNamed('/sign-in'); // or use Routes.SIGN_IN if imported
 }
 
-Widget _tableHeaderCell(String text, {int flex = 1, double width = 100}) {
+Widget _tableHeaderCell(BuildContext context, String text, {int flex = 1, double width = 100}) {
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
     width: width,
@@ -519,14 +535,17 @@ Widget _tableHeaderCell(String text, {int flex = 1, double width = 100}) {
   );
 }
 
-Widget _tableBodyCell(String text, {int flex = 1, double width = 100}) {
+Widget _tableBodyCell(BuildContext context, String text, {int flex = 1, double width = 100}) {
   return Container(
     padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
     width: width,
     alignment: Alignment.centerLeft,
     child: Text(
       text,
-      style: const TextStyle(fontSize: 11, color: Colors.black87),
+      style: TextStyle(
+        fontSize: 11,
+        color: Theme.of(context).textTheme.bodyLarge?.color,
+      ),
       overflow: TextOverflow.ellipsis,
       maxLines: 3,
     ),

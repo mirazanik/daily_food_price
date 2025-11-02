@@ -16,7 +16,8 @@
       "Bash(flutter clean:*)",
       "Bash(cat:*)",
       "Bash(./gradlew:*)",
-      "Bash(dart run:*)"
+      "Bash(dart run:*)",
+      "Bash(flutter pub get:*)"
     ],
     "deny": [],
     "ask": []

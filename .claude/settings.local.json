@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter run:*)",
+      "Bash(flutter devices:*)",
+      "Bash(flutter doctor:*)",
+      "Bash(dir \"C:\\Users\\ACI\\AppData\\Local\\Android\\sdk\\build-tools\")",
+      "Bash(./gradlew clean:*)",
+      "Bash(dir:*)",
+      "Read(//c/Users/ACI/AppData/Local/Android/sdk/build-tools/34.0.0/**)",
+      "Read(//c/Users/ACI/AppData/Local/Android/sdk/build-tools/**)",
+      "Bash(flutter --version:*)",
+      "Read(//c/Users/ACI/AppData/Local/Pub/Cache/hosted/pub.dev/path_provider_android-2.2.17/android/**)",
+      "Bash(cmd /c mklink:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(flutter clean:*)",
+      "Bash(cat:*)",
+      "Bash(./gradlew:*)",
+      "Bash(dart run:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

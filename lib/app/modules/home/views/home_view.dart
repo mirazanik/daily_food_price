@@ -130,7 +130,7 @@ class HomeView extends GetView<HomeController> {
                                               )
                                               .toList()
                                           : [],
-                                      _tableHeaderCell('MinMax'),
+                                      // _tableHeaderCell('MinMax'),
                                     ],
                                   ),
                                 ),
@@ -157,9 +157,9 @@ class HomeView extends GetView<HomeController> {
                                                 item[market] ?? 'N/A',
                                               ),
                                             ),
-                                            _tableBodyCell(
+                                            /*_tableBodyCell(
                                               item['MinMax'] ?? '',
-                                            ),
+                                            ),*/
                                           ],
                                         ),
                                       );
